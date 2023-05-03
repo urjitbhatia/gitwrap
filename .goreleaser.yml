@@ -1,0 +1,47 @@
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - env:
+      - CGO_ENABLED=0
+    ldflags:
+      >-
+      -s -w 
+      -X github.com/urjitbhatia/go-template-repo/cmd.version={{ .Version }} 
+      -X github.com/urjitbhatia/go-template-repo/cmd.commit={{ .ShortCommit }} 
+      -X github.com/urjitbhatia/go-template-repo/cmd.date={{.Date }}
+archives:
+  - replacements:
+      '386': i386
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      amd64: x86_64
+checksum:
+  name_template: checksums.txt
+snapshot:
+  name_template: '{{ .Tag }}-next'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+release:
+  draft: true
+  prerelease: auto
+  name_template: '{{.ProjectName}}-v{{.Version}}'
+dockers:
+  - goos: linux
+    goarch: amd64
+    goarm: ''
+    binaries:
+      - go-template-repo
+    image_templates:
+      - 'urjitbhatia/go-template-repo:latest'
+      - 'urjitbhatia/go-template-repo:{{ .Tag }}'
+      - 'urjitbhatia/go-template-repo:{{ .Major }}'
+    dockerfile: docker/goreleaser/Dockerfile
+    build_flag_templates:
+      - '--build-arg=VERSION={{ .Version }}'
